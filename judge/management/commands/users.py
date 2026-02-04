@@ -76,6 +76,7 @@ class Command(BaseCommand):
 
                     profile = Profile(user=usr)
                     profile.language = Language.objects.get(key='CPP20')
+                    profile.mute = True
                     profile.save()
 
                     profile.organizations.add(org)
