@@ -75,7 +75,7 @@ class Command(BaseCommand):
                     usr.save()
 
                     profile = Profile(user=usr)
-                    profile.language = Language.objects.get(key='CPP11')
+                    profile.language = Language.objects.get(key='CPP20')
                     profile.save()
 
                     profile.organizations.add(org)
