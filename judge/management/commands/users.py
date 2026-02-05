@@ -1,6 +1,3 @@
-import random
-import string
-
 from django.contrib.auth.models import User
 from django.core.management.base import BaseCommand
 
@@ -9,15 +6,7 @@ from judge.models import Organization
 
 
 class Command(BaseCommand):
-    help = 'manage contest users (add, change pass, unactivate)'
-
-    @staticmethod
-    def get_pass(file, length=10):
-        if file:
-            return file.readline()
-        else:
-            letters = string.ascii_lowercase
-            return ''.join(random.choice(letters) for _ in range(length))
+    help = 'Manage contest users (add, change pass, unactivate)'
 
     @staticmethod
     def set_active(users_file_name, value):
@@ -62,64 +51,59 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         action = options['action']
-        users_file_name = options['file']
-        pass_file_name = options['pass_file']
+        users_file_path = options['file']
+        pass_file_path = options['pass_file']
         org = options['organization']
 
         if action == 'add':
             if not options['organization']:
                 self.stdout.write(self.style.ERROR('You must provide an organization.'))
                 return
+
             try:
                 org = Organization.objects.get(short_name=org)
             except Organization.DoesNotExist:
                 self.stdout.write(self.style.ERROR('Organization with short name "%s" does not exist.' % org))
                 return
 
-            if pass_file_name:
-                pass_file = open(pass_file_name, "r")
-            else:
-                pass_file = None
-                out_file = open('pass.txt', "w")
-
-            count = 0
-            with open(users_file_name) as file:
-                for name in file:
-                    name = name.strip()
-
-                    passw = Command.get_pass(pass_file).strip()
-                    if not pass_file_name:
-                        out_file.write(passw + '\n')
-
-                    Command.add_user(name, passw, org)
-
-                    count += 1
-
-            if not pass_file_name:
-                out_file.close()
-                self.stdout.write(self.style.SUCCESS('Passwords were written to pass.txt'))
-
-            self.stdout.write(self.style.SUCCESS('Successfully added %d users' % count))
-        elif action == 'change_pass':
-            if not pass_file_name:
+            if not pass_file_path:
                 self.stdout.write(self.style.ERROR('You must provide pass file'))
                 return
 
-            pass_file = open(pass_file_name, "r")
-            count = 0
-            with open(users_file_name) as file:
-                for name in file:
-                    passw = Command.get_pass(pass_file).strip()
-                    usr = User.objects.get(username=name.strip())
-                    usr.set_password(passw)
-                    usr.save()
-                    count += 1
+            count = Command.add_users(users_file_path, pass_file_path, org)
+            self.stdout.write(self.style.SUCCESS('Successfully added %d users' % count))
+        elif action == 'change_pass':
+            if not pass_file_path:
+                self.stdout.write(self.style.ERROR('You must provide pass file'))
+                return
+
+            count = self.change_passwords(users_file_path, pass_file_path)
             self.stdout.write(self.style.SUCCESS('Successfully changed passwords of %d users' % count))
         elif action == 'activate':
-            count = Command.set_active(users_file_name, True)
+            count = Command.set_active(users_file_path, True)
             self.stdout.write(self.style.SUCCESS('Successfully activated %d users' % count))
         elif action == 'unactivate':
-            count = Command.set_active(users_file_name, False)
+            count = Command.set_active(users_file_path, False)
             self.stdout.write(self.style.SUCCESS('Successfully unactivated %d users' % count))
         else:
             self.stdout.write(self.style.ERROR('Unrecognized action "%s"' % action))
+
+    @staticmethod
+    def add_users(users_file_path, passwords_file_path, org: Organization) -> int:
+        count = 0
+        with open(users_file_path) as names, open(passwords_file_path) as passwords:
+            for name, password in zip(names, passwords):
+                Command.add_user(name.strip(), password.strip(), org)
+                count += 1
+        return count
+
+    @staticmethod
+    def change_passwords(users_file_path, passwords_file_path) -> int:
+        count = 0
+        with open(users_file_path) as names, open(passwords_file_path) as passwords:
+            for name, password in zip(names, passwords):
+                usr = User.objects.get(username=name.strip())
+                usr.set_password(password.strip())
+                usr.save()
+                count += 1
+        return count
