@@ -8,40 +8,6 @@ from judge.models import Organization
 class Command(BaseCommand):
     help = 'Manage contest users (add, change pass, unactivate)'
 
-    @staticmethod
-    def set_active(users_file_name, value):
-        count = 0
-        with open(users_file_name) as file:
-            for name in file:
-                usr = User.objects.get(username=name.strip())
-                usr.is_active = value
-                usr.save()
-                count += 1
-
-        return count
-
-    @staticmethod
-    def add_user(name: str, passw: str, org: Organization):
-        user = User(
-            username=name,
-            email='',
-            is_active=False,
-            is_superuser=False,
-            is_staff=False,
-        )
-        user.set_password(passw)
-        user.save()
-
-        user_profile = Profile(
-            user=user,
-            mute=True,
-            language=Language.objects.get(key='CPP20'),
-            site_theme='light',
-        )
-        user_profile.save()
-
-        user_profile.organizations.add(org)
-
     def add_arguments(self, parser):
         parser.add_argument('action', help="one of 'add', 'change_pass', 'activate', or 'unactivate'")
         parser.add_argument('file', help='file with usernames (one per line)')
@@ -98,6 +64,28 @@ class Command(BaseCommand):
         return count
 
     @staticmethod
+    def add_user(name: str, passw: str, org: Organization):
+        user = User(
+            username=name,
+            email='',
+            is_active=False,
+            is_superuser=False,
+            is_staff=False,
+        )
+        user.set_password(passw)
+        user.save()
+
+        user_profile = Profile(
+            user=user,
+            mute=True,
+            language=Language.objects.get(key='CPP20'),
+            site_theme='light',
+        )
+        user_profile.save()
+
+        user_profile.organizations.add(org)
+
+    @staticmethod
     def change_passwords(users_file_path, passwords_file_path) -> int:
         count = 0
         with open(users_file_path) as names, open(passwords_file_path) as passwords:
@@ -106,4 +94,16 @@ class Command(BaseCommand):
                 usr.set_password(password.strip())
                 usr.save()
                 count += 1
+        return count
+
+    @staticmethod
+    def set_active(users_file_path, value: bool):
+        count = 0
+        with open(users_file_path) as file:
+            for name in file:
+                usr = User.objects.get(username=name.strip())
+                usr.is_active = value
+                usr.save()
+                count += 1
+
         return count
