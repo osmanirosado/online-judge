@@ -31,11 +31,7 @@ class Command(BaseCommand):
                 self.stdout.write(self.style.ERROR('Organization with short name "%s" does not exist.' % org))
                 return
 
-            if not pass_file_path:
-                self.stdout.write(self.style.ERROR('You must provide pass file'))
-                return
-
-            count = Command.add_users(users_file_path, pass_file_path, org)
+            count = Command.add_users(users_file_path, org)
             self.stdout.write(self.style.SUCCESS('Successfully added %d users' % count))
         elif action == 'change_pass':
             if not pass_file_path:
@@ -54,16 +50,16 @@ class Command(BaseCommand):
             self.stdout.write(self.style.ERROR('Unrecognized action "%s"' % action))
 
     @staticmethod
-    def add_users(users_file_path, passwords_file_path, org: Organization) -> int:
+    def add_users(users_file_path, org: Organization) -> int:
         count = 0
-        with open(users_file_path) as names, open(passwords_file_path) as passwords:
-            for name, password in zip(names, passwords):
-                Command.add_user(name.strip(), password.strip(), org)
+        with open(users_file_path) as names:
+            for name in names:
+                Command.add_user(name.strip(), org)
                 count += 1
         return count
 
     @staticmethod
-    def add_user(name: str, passw: str, org: Organization):
+    def add_user(name: str, org: Organization):
         user = User(
             username=name,
             email='',
@@ -71,7 +67,6 @@ class Command(BaseCommand):
             is_superuser=False,
             is_staff=False,
         )
-        user.set_password(passw)
         user.save()
 
         user_profile = Profile(
