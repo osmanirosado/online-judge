@@ -5,6 +5,7 @@ from django.contrib.auth.models import User
 from django.core.management.base import BaseCommand
 
 from judge.models import *
+from judge.models import Organization
 
 
 class Command(BaseCommand):
@@ -16,8 +17,8 @@ class Command(BaseCommand):
             return file.readline()
         else:
             letters = string.ascii_lowercase
-            return ''.join(random.choice(letters) for i in range(length))
-            
+            return ''.join(random.choice(letters) for _ in range(length))
+
     @staticmethod
     def set_active(users_file_name, value):
         count = 0
@@ -27,8 +28,30 @@ class Command(BaseCommand):
                 usr.is_active = value
                 usr.save()
                 count += 1
-        
+
         return count
+
+    @staticmethod
+    def add_user(name: str, passw: str, org: Organization):
+        user = User(
+            username=name,
+            email='',
+            is_active=False,
+            is_superuser=False,
+            is_staff=False,
+        )
+        user.set_password(passw)
+        user.save()
+
+        user_profile = Profile(
+            user=user,
+            mute=True,
+            language=Language.objects.get(key='CPP20'),
+            site_theme='light',
+        )
+        user_profile.save()
+
+        user_profile.organizations.add(org)
 
     def add_arguments(self, parser):
         parser.add_argument('action', help="one of 'add', 'change_pass', 'activate', or 'unactivate'")
@@ -68,17 +91,7 @@ class Command(BaseCommand):
                     if not pass_file_name:
                         out_file.write(passw + '\n')
 
-                    usr = User(username=name, email='', is_active=False, is_superuser=False, is_staff=False)
-                    usr.set_password(passw)
-                    usr.save()
-
-                    profile = Profile(user=usr)
-                    profile.language = Language.objects.get(key='CPP20')
-                    profile.site_theme = 'light'
-                    profile.mute = True
-                    profile.save()
-
-                    profile.organizations.add(org)
+                    Command.add_user(name, passw, org)
 
                     count += 1
 
