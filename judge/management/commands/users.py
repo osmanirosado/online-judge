@@ -12,8 +12,7 @@ class Command(BaseCommand):
         parser.add_argument('action', help="one of 'add', 'change_pass', 'enable', or 'disable'")
         parser.add_argument('file', help='file with usernames (one per line)')
         parser.add_argument('-o', '--organization', help='organization (short name) where created user will be added')
-        parser.add_argument('-p', '--pass_file', help=('file for reading passwords (one per line), if not present'
-                                                       'random password is generated and written to pass.txt'))
+        parser.add_argument('-p', '--pass_file', help='file for reading passwords (one per line)')
 
     def handle(self, *args, **options):
         action = options['action']
