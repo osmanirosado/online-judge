@@ -63,15 +63,13 @@ class Command(BaseCommand):
             with open(users_file_name) as file:
                 for name in file:
                     name = name.strip()
-                    usr = User(username=name, email='', is_active=True)
 
                     passw = Command.get_pass(pass_file).strip()
                     if not pass_file_name:
                         out_file.write(passw + '\n')
 
+                    usr = User(username=name, email='', is_active=False, is_superuser=False, is_staff=False)
                     usr.set_password(passw)
-                    usr.is_superuser = False
-                    usr.is_staff = False
                     usr.save()
 
                     profile = Profile(user=usr)
