@@ -6,10 +6,10 @@ from judge.models import Organization
 
 
 class Command(BaseCommand):
-    help = 'Manage contest users (add, change pass, unactivate)'
+    help = 'Manage contest users: add, change password, enable or disable'
 
     def add_arguments(self, parser):
-        parser.add_argument('action', help="one of 'add', 'change_pass', 'activate', or 'unactivate'")
+        parser.add_argument('action', help="one of 'add', 'change_pass', 'enable', or 'disable'")
         parser.add_argument('file', help='file with usernames (one per line)')
         parser.add_argument('-o', '--organization', help='organization (short name) where created user will be added')
         parser.add_argument('-p', '--pass_file', help=('file for reading passwords (one per line), if not present'
@@ -45,10 +45,10 @@ class Command(BaseCommand):
 
             count = self.change_passwords(users_file_path, pass_file_path)
             self.stdout.write(self.style.SUCCESS('Successfully changed passwords of %d users' % count))
-        elif action == 'activate':
+        elif action == 'enable':
             count = Command.set_active(users_file_path, True)
             self.stdout.write(self.style.SUCCESS('Successfully activated %d users' % count))
-        elif action == 'unactivate':
+        elif action == 'disable':
             count = Command.set_active(users_file_path, False)
             self.stdout.write(self.style.SUCCESS('Successfully unactivated %d users' % count))
         else:
