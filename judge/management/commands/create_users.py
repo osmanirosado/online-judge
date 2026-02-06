@@ -17,8 +17,8 @@ class Command(BaseCommand):
 
         count = 0
         organization = Organization.objects.get(short_name=organization_short_name)
-        with open(usernames_file) as file:
-            for username in file:
+        with open(usernames_file) as usernames:
+            for username in usernames:
                 user = User.objects.create_user(username=username, is_active=False, is_staff=False, is_superuser=False)
                 user.save()
 
