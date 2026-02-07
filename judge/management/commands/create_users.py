@@ -16,13 +16,14 @@ class Command(BaseCommand):
         usernames_file = options['users_file']
         organization_short_name = options['organization']
 
-        count = 0
+        created = skipped = 0
         organization = Organization.objects.get(short_name=organization_short_name)
         with open(usernames_file) as usernames:
             for username in usernames:
                 username = username.strip()
                 try:
-                    user = User.objects.create_user(username=username, is_active=False, is_staff=False, is_superuser=False)
+                    user = User.objects.create_user(username=username, is_active=False, is_staff=False,
+                                                    is_superuser=False)
                     user.save()
 
                     language = Language.objects.get(key='CPP20')
@@ -30,8 +31,11 @@ class Command(BaseCommand):
                     user_profile.save()
 
                     user_profile.organizations.add(organization)
-                    count += 1
-                except IntegrityError as e:
-                    self.stdout.write(self.style.ERROR(str(e)))
+                    created += 1
+                except IntegrityError:
+                    skipped += 1
 
-        self.stdout.write(self.style.SUCCESS('Successfully created %d users' % count))
+        if skipped > 0:
+            self.stdout.write(self.style.WARNING(f'Unable to create {skipped} users because they already exist.'))
+        if created > 0:
+            self.stdout.write(self.style.SUCCESS(f'Successfully created {created} users.'))
