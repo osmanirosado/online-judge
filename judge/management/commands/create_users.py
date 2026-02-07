@@ -1,5 +1,6 @@
 from django.contrib.auth.models import User
 from django.core.management import BaseCommand
+from django.db import IntegrityError
 
 from judge.models import Profile, Language, Organization
 
@@ -20,14 +21,17 @@ class Command(BaseCommand):
         with open(usernames_file) as usernames:
             for username in usernames:
                 username = username.strip()
-                user = User.objects.create_user(username=username, is_active=False, is_staff=False, is_superuser=False)
-                user.save()
+                try:
+                    user = User.objects.create_user(username=username, is_active=False, is_staff=False, is_superuser=False)
+                    user.save()
 
-                language = Language.objects.get(key='CPP20')
-                user_profile = Profile.objects.create(user=user, language=language, mute=True, site_theme='light')
-                user_profile.save()
+                    language = Language.objects.get(key='CPP20')
+                    user_profile = Profile.objects.create(user=user, language=language, mute=True, site_theme='light')
+                    user_profile.save()
 
-                user_profile.organizations.add(organization)
-                count += 1
+                    user_profile.organizations.add(organization)
+                    count += 1
+                except IntegrityError as e:
+                    self.stdout.write(self.style.ERROR('Integrity error occurred: %s' % e))
 
         self.stdout.write(self.style.SUCCESS('Successfully created %d users' % count))
