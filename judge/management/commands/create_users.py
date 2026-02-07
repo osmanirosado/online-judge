@@ -32,6 +32,6 @@ class Command(BaseCommand):
                     user_profile.organizations.add(organization)
                     count += 1
                 except IntegrityError as e:
-                    self.stdout.write(self.style.ERROR('Integrity error occurred: %s' % e))
+                    self.stdout.write(self.style.ERROR(str(e)))
 
         self.stdout.write(self.style.SUCCESS('Successfully created %d users' % count))
