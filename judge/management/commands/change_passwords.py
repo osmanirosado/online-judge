@@ -18,9 +18,12 @@ class Command(BaseCommand):
             for username, password in zip(usernames, passwords):
                 username = username.strip()
                 password = password.strip()
-                usr = User.objects.get(username=username)
-                usr.set_password(password)
-                usr.save()
-                count += 1
+                try:
+                    usr = User.objects.get(username=username)
+                    usr.set_password(password)
+                    usr.save()
+                    count += 1
+                except User.DoesNotExist:
+                    self.stdout.write(self.style.ERROR('User %s does not exist' % username))
 
         self.stdout.write(self.style.SUCCESS('Successfully changed passwords of %d users' % count))
