@@ -16,8 +16,10 @@ class Command(BaseCommand):
         count = 0
         with open(users_file) as usernames, open(passwords_file) as passwords:
             for username, password in zip(usernames, passwords):
-                usr = User.objects.get(username=username.strip())
-                usr.set_password(password.strip())
+                username = username.strip()
+                password = password.strip()
+                usr = User.objects.get(username=username)
+                usr.set_password(password)
                 usr.save()
                 count += 1
 
