@@ -24,6 +24,6 @@ class Command(BaseCommand):
                     usr.save()
                     count += 1
                 except User.DoesNotExist:
-                    self.stdout.write(self.style.ERROR('User %s does not exist' % username))
+                    self.stdout.write(self.style.ERROR(f'User {username} does not exist'))
 
-        self.stdout.write(self.style.SUCCESS('Successfully changed passwords of %d users' % count))
+        self.stdout.write(self.style.SUCCESS(f'Successfully changed passwords of {count} users.'))
