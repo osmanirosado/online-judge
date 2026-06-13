@@ -1,6 +1,6 @@
 from django.contrib.auth.models import User
 from django.core.management import BaseCommand
-from django.db import Error, IntegrityError
+from django.db import IntegrityError
 
 from judge.models import Profile, Language, Organization
 
@@ -76,8 +76,8 @@ class Command(BaseCommand):
     @staticmethod
     def create_profile(user: User, language: Language) -> Profile | None:
         try:
-            profile = Profile.objects.create(user=user, language=language, mute=True, site_theme='light')
+            profile = Profile.objects.create(user=user, language=language, site_theme='light')
             profile.save()
             return profile
-        except Error:
+        except IntegrityError:
             return None
