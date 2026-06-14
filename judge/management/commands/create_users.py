@@ -2,14 +2,13 @@ from django.contrib.auth.models import User
 from django.core.management import BaseCommand
 from django.db import IntegrityError
 
-from judge.models import Profile, Language, Organization
+from judge.models import Profile, Language
 
 
 class Command(BaseCommand):
     help = 'create users'
 
     def add_arguments(self, parser):
-        parser.add_argument('organization', type=str, help='organization short name')
         parser.add_argument('users_file', type=str, help='file with usernames (one per line)')
 
     def handle(self, *args, **options):
@@ -17,12 +16,6 @@ class Command(BaseCommand):
         language = self.get_language(key=lang_key)
         if language is None:
             self.stdout.write(self.style.ERROR(f'Language {lang_key} does not exist.'))
-            return
-
-        org_short_name = options['organization']
-        organization = self.get_organization(org_short_name)
-        if organization is None:
-            self.stdout.write(self.style.ERROR(f'Organization {org_short_name} does not exist.'))
             return
 
         usernames_file = options['users_file']
@@ -40,7 +33,6 @@ class Command(BaseCommand):
                     self.stdout.write(self.style.ERROR(f'Profile creation failed for user: {username}.'))
                     break
 
-                profile.organizations.add(organization)
                 created += 1
 
         if skipped > 0:
@@ -54,14 +46,6 @@ class Command(BaseCommand):
             language = Language.objects.get(key=key)
             return language
         except Language.DoesNotExist:
-            return None
-
-    @staticmethod
-    def get_organization(short_name: str) -> Organization | None:
-        try:
-            organization = Organization.objects.get(short_name=short_name)
-            return organization
-        except Organization.DoesNotExist:
             return None
 
     @staticmethod
