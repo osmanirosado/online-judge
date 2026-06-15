@@ -4,13 +4,15 @@ from judge.models import Profile
 
 
 class Command(BaseCommand):
-    help = 'override username display'
+    help = 'unlist display'
 
     def add_arguments(self, parser):
         parser.add_argument('users_file', type=str, help='file with usernames (one per line)')
+        parser.add_argument('--negate', dest="value", action='store_false', help='revert unlist action for the given users')
 
     def handle(self, *args, **options):
         users_file = options['users_file']
+        value = options['value']
 
         count = 0
         with open(users_file) as usernames:
@@ -19,7 +21,7 @@ class Command(BaseCommand):
 
                 try:
                     profile = Profile.objects.get(user__username=username)
-                    profile.is_unlisted = True
+                    profile.is_unlisted = value
                     profile.save()
                     count += 1
                 except Profile.DoesNotExist:
