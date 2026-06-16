@@ -6,12 +6,12 @@ class Command(BaseCommand):
     help = 'change passwords'
 
     def add_arguments(self, parser):
-        parser.add_argument('users_file', type=str, help='file with usernames (one per line)')
-        parser.add_argument('passwords_file', type=str, help='file with passwords (one per line)')
+        parser.add_argument('users', type=str, help='file with usernames (one per line)')
+        parser.add_argument('passwords', type=str, help='file with passwords (one per line)')
 
     def handle(self, *args, **options):
-        users_file = options['users_file']
-        passwords_file = options['passwords_file']
+        users_file = options['users']
+        passwords_file = options['passwords']
 
         count = 0
         with open(users_file) as usernames, open(passwords_file) as passwords:

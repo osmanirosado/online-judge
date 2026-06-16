@@ -7,12 +7,12 @@ class Command(BaseCommand):
     help = 'override username display'
 
     def add_arguments(self, parser):
-        parser.add_argument('users_file', type=str, help='file with usernames (one per line)')
-        parser.add_argument('names_file', type=str, help='file with full names (one per line)')
+        parser.add_argument('users', type=str, help='file with usernames (one per line)')
+        parser.add_argument('names', type=str, help='file with full names (one per line)')
 
     def handle(self, *args, **options):
-        users_file = options['users_file']
-        names_file = options['names_file']
+        users_file = options['users']
+        names_file = options['names']
 
         count = 0
         with open(users_file) as usernames, open(names_file) as names:

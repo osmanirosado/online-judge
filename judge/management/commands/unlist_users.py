@@ -7,11 +7,11 @@ class Command(BaseCommand):
     help = 'unlist display'
 
     def add_arguments(self, parser):
-        parser.add_argument('users_file', type=str, help='file with usernames (one per line)')
+        parser.add_argument('users', type=str, help='file with usernames (one per line)')
         parser.add_argument('--negate', dest="value", action='store_false', help='revert unlist action for the given users')
 
     def handle(self, *args, **options):
-        users_file = options['users_file']
+        users_file = options['users']
         value = options['value']
 
         count = 0

@@ -9,7 +9,7 @@ class Command(BaseCommand):
     help = 'create users'
 
     def add_arguments(self, parser):
-        parser.add_argument('users_file', type=str, help='file with usernames (one per line)')
+        parser.add_argument('users', type=str, help='file with usernames (one per line)')
 
     def handle(self, *args, **options):
         lang_key = 'CPP20'
@@ -18,7 +18,7 @@ class Command(BaseCommand):
             self.stdout.write(self.style.ERROR(f'Language {lang_key} does not exist.'))
             return
 
-        usernames_file = options['users_file']
+        usernames_file = options['users']
 
         created = skipped = 0
         with open(usernames_file) as usernames:
