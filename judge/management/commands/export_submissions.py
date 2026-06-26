@@ -29,10 +29,10 @@ class Command(BaseCommand):
         ).values('user', 'cod_problem', 'points', 'sub_id', 'source', 'ext').order_by('-points')
 
         def build_path(user, cod_problem, sub_id, ext):
-            elements = [t['user'], t['cod_problem'], str(t['sub_id']) + '.' + t['ext']]
-            return '/' + '/'.join(elements)
+            return os.path.join(user, cod_problem, f"{sub_id}.{ext}")
 
-        encode_source = lambda src: src.encode('utf-8').strip()
+        def encode_source(src):
+            return src.encode('utf-8').strip()
 
         name = contest_code + '_' + ('all' if options['all'] else 'ok')
         file_path = os.path.join(work_dir, name + '.zip')
