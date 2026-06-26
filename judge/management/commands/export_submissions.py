@@ -9,14 +9,15 @@ from judge.models import ContestSubmission
 
 class Command(BaseCommand):
     help = "exports all finally accepted contest's submissions"
-    PROJ_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 
     def add_arguments(self, parser):
         parser.add_argument('code', help='contest code')
+        parser.add_argument('work_dir', help='working directory')
         parser.add_argument('-a', '--all', action='store_true', help='output all submissions')
 
     def handle(self, *args, **options):
         contest_code = options['code']
+        work_dir = options['work_dir']
 
         cont_sub = ContestSubmission.objects.filter(participation__contest__key=contest_code, participation__virtual=0)
         cont_sub = cont_sub.annotate(
@@ -34,7 +35,8 @@ class Command(BaseCommand):
         encode_source = lambda src: src.encode('utf-8').strip()
 
         name = contest_code + '_' + ('all' if options['all'] else 'ok')
-        with zipfile.ZipFile("%s.zip" % name, "w", zipfile.ZIP_DEFLATED) as file:
+        file_path = os.path.join(work_dir, name + '.zip')
+        with zipfile.ZipFile(str(file_path), "w", zipfile.ZIP_DEFLATED) as file:
             if options['all']:
                 for t in cont_sub:
                     path = build_path(t['user'], t['cod_problem'], t['sub_id'], t['ext'])
