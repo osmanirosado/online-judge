@@ -8,57 +8,38 @@ from judge.models import ContestSubmission
 
 
 class Command(BaseCommand):
-    help = "exports all finally accepted contest's submissions"
+    help = "exports all contest submissions"
 
     def add_arguments(self, parser):
         parser.add_argument('code', help='contest code')
         parser.add_argument('work_dir', help='working directory')
-        parser.add_argument('-a', '--all', action='store_true', help='output all submissions')
 
     def handle(self, *args, **options):
         contest_code = options['code']
         work_dir = options['work_dir']
 
-        cont_sub = ContestSubmission.objects.filter(participation__contest__key=contest_code, participation__virtual=0)
-        cont_sub = cont_sub.annotate(
-            user=F('submission__user__user__username'),
-            cod_problem=F('submission__problem__code'),
-            sub_id=F('submission__id'),
-            source=F('submission__source__source'),
-            ext=F('submission__language__key')
-        ).values('user', 'cod_problem', 'points', 'sub_id', 'source', 'ext').order_by('-points')
+        contest_submissions = ContestSubmission.objects.filter(
+            participation__contest__key=contest_code,
+            participation__virtual=0
+        ).annotate(
+            username=F('submission__user__user__username'),
+            problem_code=F('submission__problem__code'),
+            submission_source=F('submission__source__source'),
+            language_key=F('submission__language__key')
+        ).values('username', 'problem_code', 'submission_id', 'submission_source', 'language_key')
 
-        def build_path(user, cod_problem, sub_id, ext):
-            return os.path.join(user, cod_problem, f"{sub_id}.{ext}")
-
-        def encode_source(src):
-            return src.encode('utf-8').strip()
-
-        name = contest_code + '_' + ('all' if options['all'] else 'ok')
-        file_path = os.path.join(work_dir, name + '.zip')
+        file_name = f"{contest_code}_all.zip"
+        file_path = os.path.join(work_dir, file_name)
+        self.stdout.write(f'Archiving submissions ...')
         with zipfile.ZipFile(str(file_path), "w", zipfile.ZIP_DEFLATED) as file:
-            if options['all']:
-                for t in cont_sub:
-                    path = build_path(t['user'], t['cod_problem'], t['sub_id'], t['ext'])
-                    data = encode_source(t['source'])
-                    file.writestr(path, data)
-            else:
-                user_points = []
-                prob_id = {}
-                prob_count = 0
+            for submission in contest_submissions:
+                username = submission['username']
+                problem_code = submission['problem_code']
+                submission_id = submission['submission_id']
+                submission_source = submission['submission_source']
+                language_key = submission['language_key']
 
-                for t in cont_sub:
-                    if t['cod_problem'] not in prob_id:
-                        user_points.append({})
-                        prob_id[t['cod_problem']] = prob_count
-                        prob_count += 1
-
-                    act_id = prob_id[t['cod_problem']]
-
-                    if t['user'] not in user_points[act_id]:
-                        user_points[act_id][t['user']] = t['points']
-
-                    if t['points'] == user_points[act_id][t['user']]:
-                        path = build_path(t['user'], t['cod_problem'], t['sub_id'], t['ext'])
-                        data = encode_source(t['source'])
-                        file.writestr(path, data)
+                path = os.path.join(username, problem_code, f"{submission_id}.{language_key.lower()}")
+                data = submission_source.encode('utf-8').strip()
+                file.writestr(str(path), data)
+        self.stdout.write(self.style.SUCCESS(f'Successfully exported file: {file_path}'))
